@@ -41,7 +41,7 @@ add_shortcode( 'lf-user-login', 'lf_display_user_login');
 function lf_display_user_options() {
 	if ( is_user_logged_in() ) { 
 	
-		//display the user options
+		//TODO display the user options
 		echo " <h1>Hello World</h1>";	
 		wp_loginout( home_url() ); // Display "Log Out" link.
 		echo " | ";
@@ -61,19 +61,18 @@ function lf_display_user_sign_up()
 	<h2>Sign Up</h2>
 	<script>
 		function validateForm() {
-			//alert('Form submitted!');
+			
 		
 			document.getElementById("username-error").innerHTML ="";
 			document.getElementById("email-error").innerHTML ="";
 			document.getElementById("password-error").innerHTML ="";			
 		
-			var formdata = document.forms["signup-form"]; //["username"].value;
+			var formdata = document.forms["signup-form"];
 			
 			var form_is_valid = true;
 			
 			if (formdata["username"].value == "") {
-				//alert("Name must be filled out");
-				
+						
 				document.getElementById("username-error").innerHTML ="!Name must be filled out!";
 				form_is_valid = false;
 			}
@@ -100,9 +99,9 @@ function lf_display_user_sign_up()
 				form_is_valid = false;
 			}
 			else if( pw != formdata["confirm_pw"].value ){
-				document.getElementById("password-error").innerHTML = "!passwords must match!";
-				//alert("password must match");
+				document.getElementById("password-error").innerHTML = "!passwords must match!";				
 				form_is_valid = false;
+				
 				formdata["password"].value = "";
 				formdata["confirm_pw"].value = "";
 			}
@@ -117,7 +116,7 @@ function lf_display_user_sign_up()
 				echo "const url = \"$rest_url\"";
 			?>
 			
-			// TODO do something here to show user that form is being submitted
+			
 			result_element.innerHTML = "sent data";
 			fetch(	
 				url, 
@@ -131,10 +130,10 @@ function lf_display_user_sign_up()
 				}
 			).then(
 				(body) => {
-					// TODO handle body
+					
 					if( body.success )
 					{
-						//result_element.innerHTML = "success " + body.email + body.password;
+						//result_element.innerHTML = "success " 
 						location.reload();
 					}
 					else{
@@ -173,31 +172,7 @@ function lf_display_user_sign_up()
 			return false;
 		}
 		
-		/*
-		document.forms['signup-form'].addEventListener('submit', (event) => {
-			event.preventDefault();
-			
-			<?php
-	echo "const url = \"$rest_url\"";
-	?>
-			
-			// TODO do something here to show user that form is being submitted
-			document.getElementById("password-error").innerHTML = "sent data";
-			fetch(url, {
-				method: 'POST',
-				body: new URLSearchParams(new FormData(event.target)) // event.target is the form
-			}).then((resp) => {
-				return resp.json(); // or resp.text() or whatever the server sends
-			}).then((body) => {
-				// TODO handle body
-				document.getElementById("password-error").innerHTML = "success";
-			}).catch((error) => {
-			// TODO handle error
-			document.getElementById("password-error").innerHTML = "server error";
-		});
-		
-	});
-		*/
+
 	</script>
 
 	
@@ -300,8 +275,7 @@ add_action( 'rest_api_init', function () {
 
 function try_create_friend( WP_REST_Request $request )
 {
-	
-	
+		
 	$user_name = sanitize_user( $request->get_param( 'username'), true );
 	$email = sanitize_email($request->get_param( 'email' ));
 	$password = $request->get_param( 'password' );
@@ -340,17 +314,11 @@ function try_create_friend( WP_REST_Request $request )
 		}
 		else
 		{
-			
-			//$user_login = 'dwoo'; 
-			//$user = get_userdatabylogin($user_login);
-			//$user_id = $user->ID; 
+			//login the new user
 			wp_set_current_user($new_user_id, $user_name);
 			wp_set_auth_cookie($new_user_id); 
 			do_action('wp_login', $user_name); 
-			
-			
-			//$success = false;
-			//$fail_reasons[] = "secretly succeeded";
+					
 		}
 	}
 		
