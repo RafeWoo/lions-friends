@@ -321,8 +321,7 @@ function try_create_friend( WP_REST_Request $request )
 					
 		}
 	}
-		
-	
+			
 	return array( 
 		 'success' => $success,
 		 'fail_reasons' => $fail_reasons,
