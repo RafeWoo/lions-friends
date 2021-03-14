@@ -51,36 +51,177 @@ function lf_display_user_options() {
 
 function lf_display_user_sign_up()
 {
-	
-	/*
-	$rest_url = get_site_url()."/wp-json/"."lions-friends/v1/create-user"; 	
 	$wp_nonce = wp_create_nonce( 'wp_rest' );
-	*/
+	$rest_url = get_site_url()."/wp-json/"."lions-friends/v1/create-user"; 	
+	
+	
 	if ( !is_user_logged_in() ) { 
 	
 	?>
 	<h2>Sign Up</h2>
 	<script>
 		function validateForm() {
-			alert('Form submitted!');
+			//alert('Form submitted!');
+		
+			document.getElementById("username-error").innerHTML ="";
+			document.getElementById("email-error").innerHTML ="";
+			document.getElementById("password-error").innerHTML ="";			
+		
+			var formdata = document.forms["signup-form"]; //["username"].value;
+			
+			var form_is_valid = true;
+			
+			if (formdata["username"].value == "") {
+				//alert("Name must be filled out");
+				
+				document.getElementById("username-error").innerHTML ="!Name must be filled out!";
+				form_is_valid = false;
+			}
+		
+			const email_string = formdata["email"].value;
+			if( email_string == "") {
+				document.getElementById("email-error").innerHTML ="!email must be filled out!";
+				form_is_valid = false;
+			}
+			else {
+				const email_lower = String(email_string).toLowerCase();
+				const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+			 
+				if( !regex.test( email_lower ) )
+				{
+					document.getElementById("email-error").innerHTML = "!invalid email!";
+					form_is_valid = false;
+				}		
+			}			
+			
+			const pw = formdata["password"].value;
+			if( pw == "" ){
+				document.getElementById("password-error").innerHTML = "!password must be filled out!";
+				form_is_valid = false;
+			}
+			else if( pw != formdata["confirm_pw"].value ){
+				document.getElementById("password-error").innerHTML = "!passwords must match!";
+				//alert("password must match");
+				form_is_valid = false;
+				formdata["password"].value = "";
+				formdata["confirm_pw"].value = "";
+			}
+				
+
+			if( form_is_valid )
+			{
+				var result_element = document.getElementById("result");
+				result_element.innerHTML = "form valid";
+			
+			<?php
+				echo "const url = \"$rest_url\"";
+			?>
+			
+			// TODO do something here to show user that form is being submitted
+			result_element.innerHTML = "sent data";
+			fetch(	
+				url, 
+				{
+					method: 'POST',
+					body: new URLSearchParams(new FormData(formdata)) 
+				}
+			).then(
+				(resp) => {
+					return resp.json(); // or resp.text() or whatever the server sends
+				}
+			).then(
+				(body) => {
+					// TODO handle body
+					if( body.success )
+					{
+						//result_element.innerHTML = "success " + body.email + body.password;
+						location.reload();
+					}
+					else{
+						var error_string = "Failed to register: ";
+						var fail_reasons = "";
+						var count = 0;
+						for( const reason of body.fail_reasons )
+						{
+							if( count > 0)
+							{
+								fail_reasons += " , ";
+							}
+							
+							fail_reasons += reason;
+							++count;
+						}
+						
+						result_element.innerHTML = error_string + fail_reasons;
+						
+						formdata["password"].value = "";
+						formdata["confirm_pw"].value = "";
+					}
+				}
+			).catch(
+				(error) => {
+					
+					result_element.innerHTML = "server error";
+					formdata["password"].value = "";
+					formdata["confirm_pw"].value = "";
+					
+				}
+			);
+		
+			}
+				
 			return false;
 		}
+		
+		/*
+		document.forms['signup-form'].addEventListener('submit', (event) => {
+			event.preventDefault();
+			
+			<?php
+	echo "const url = \"$rest_url\"";
+	?>
+			
+			// TODO do something here to show user that form is being submitted
+			document.getElementById("password-error").innerHTML = "sent data";
+			fetch(url, {
+				method: 'POST',
+				body: new URLSearchParams(new FormData(event.target)) // event.target is the form
+			}).then((resp) => {
+				return resp.json(); // or resp.text() or whatever the server sends
+			}).then((body) => {
+				// TODO handle body
+				document.getElementById("password-error").innerHTML = "success";
+			}).catch((error) => {
+			// TODO handle error
+			document.getElementById("password-error").innerHTML = "server error";
+		});
+		
+	});
+		*/
 	</script>
 
-
-	<form onsubmit="return validateForm();" class="my-form" method="post">
+	
+	<form name="signup-form" onsubmit="return validateForm();" class="signup-form" 
+	
+	method="post">
 		<label for="username">User Name:</label><br>
-		<input type="text" id="username" name="username" value=""/><br>
+		<input type="text" id="username" name="username" value=""/><p id="username-error"></p>
+		
 		<label for="email">e-mail:</label><br>
-		<input type="text" id="email" name="email" value="" /><br>
+		<input type="text" id="email" name="email" value="" /><p id="email-error"></p>
+		
 		<label for="password">password</label><br>
-		<input type="password" id="password" name="password" value=""/><br>
+		<input type="password" id="password" name="password" value=""/><p id="password-error"></p>
+		
 		<label for="confirm_pw">confirm password:</label><br>
-		<input type="password" id="confirm_pw" name="confirm_pw" value="" /><br>
-		<br>		
+		<input type="password" id="confirm_pw" name="confirm_pw" value="" />
+	<?php
+		echo "<input type=\"hidden\" id=\"nonce\" name=\"nonce\" value=\"$wp_nonce\" />";		
+	?>
+		<br><br>		
 		<input type="submit" value="Submit">
 	</form> 
-	
+	<p id="result"></p>
 	<?php
 	
 	}
@@ -159,10 +300,65 @@ add_action( 'rest_api_init', function () {
 
 function try_create_friend( WP_REST_Request $request )
 {
-	global $wpdb;
+	
+	
+	$user_name = sanitize_user( $request->get_param( 'username'), true );
+	$email = sanitize_email($request->get_param( 'email' ));
+	$password = $request->get_param( 'password' );
+		
+	$success = true;
+	$fail_reasons = array();
+	
+	//
+	if( username_exists($user_name) )
+	{
+		$success = false;
+		$fail_reasons[] = "user name already exists";
+	}
+	
+	if( !is_email($email) )
+	{
+		$success = false;
+		$fail_reasons[] = "invalid email";
+	}
+	
+	if( email_exists( $email ) )
+	{
+		$success = false;
+		$fail_reasons[] = "email already exists";
+	}
+	
+	if( $success )
+	{
+		$new_user_id = wp_create_user($user_name, $password, $email);
+		
+		//could use register_new_user and not need user to supply password
+		if( is_wp_error($new_user_id ) )
+		{
+			$success = false;
+			$fail_reasons[] = "failed to create user";
+		}
+		else
+		{
+			
+			//$user_login = 'dwoo'; 
+			//$user = get_userdatabylogin($user_login);
+			//$user_id = $user->ID; 
+			wp_set_current_user($new_user_id, $user_name);
+			wp_set_auth_cookie($new_user_id); 
+			do_action('wp_login', $user_name); 
+			
+			
+			//$success = false;
+			//$fail_reasons[] = "secretly succeeded";
+		}
+	}
+		
 	
 	return array( 
-		 'success' => true,
+		 'success' => $success,
+		 'fail_reasons' => $fail_reasons,
+		
 		);
 }
 
