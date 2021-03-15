@@ -3,7 +3,7 @@
 Plugin Name: lions-friends
 Plugin URI: https://southamlions.org.uk
 Description: Provides Some simple user options
-Version: 0.1
+Version: 0.2.1
 Author: david woo
 Author URI: https://southamlions.org.uk
 License: MIT
@@ -51,13 +51,12 @@ function lf_display_user_options() {
 		$rest_url = get_site_url()."/wp-json/"."lions-friends/v1/update-options"; 
 	
 		$user = wp_get_current_user();
-		
-		echo "<p>hello $user->user_login</p>";
-		
-
+				
+//<p>Please keep me informed about:</p>				
 		?>
 		
-		<p>Please keep me informed about:</p>
+		<p id="email-options" class="lf-email-options">E-mail options</p>
+		<p>Tick boxes you would like to receive e-mail updates about<p>
 		<form name="lf-options-form" class="lf-options-form" onsubmit="return updateOptions();">
 				
 			<label for="update-all">Everything: </label><input type="checkbox" id="update-all" name="update-all" /><br>
@@ -178,6 +177,12 @@ function lf_display_user_options() {
 		//echo " | ";
 		//wp_register('', ''); // Display "Site Admin" link.
 	}
+	else
+	{
+		?>
+		<p>You need to be logged in to see options</p>
+		<?php
+	}
 }
 
 function lf_display_user_sign_up()
@@ -189,6 +194,7 @@ function lf_display_user_sign_up()
 	if ( !is_user_logged_in() ) { 
 	
 	?>
+	<p>Please register to receive updates about Southam Lions Events<p>
 	<h2>Sign Up</h2>
 	<script type="application/javascript">
 		function validateForm() {
@@ -241,19 +247,20 @@ function lf_display_user_sign_up()
 			if( form_is_valid )
 			{
 				let result_element = document.getElementById("result");
-				result_element.innerHTML = "form valid";
+				//result_element.innerHTML = "form valid";
 			
 			
-			const url = <?php echo "\"$rest_url\"" ?>;					
-			const nonce = <?php	echo "\"$wp_nonce\"" ?>;							
+			const url = <?php echo "\"$rest_url\""; ?>;					
+			const nonce = <?php	echo "\"$wp_nonce\""; ?>;							
 			
 					
-			result_element.innerHTML = "sent data";
+			//result_element.innerHTML = "sent data";
+			
 			fetch(	
 				url, 
 				{
 					method: 'POST',
-					body: new URLSearchParams(new FormData(formdata)),
+					body: new URLSearchParams(new FormData(formdata)), 
 					headers: {
 						'X-WP-Nonce': nonce			
 					},
@@ -268,7 +275,10 @@ function lf_display_user_sign_up()
 					if( body.success )
 					{
 						//result_element.innerHTML = "success " 
-						location.reload();
+						//location.reload();
+						const redirect_url = <?php echo "\"".site_url()."/options\"";?>;
+						//result_element.innerHTML = redirect_url;
+						window.location.href = redirect_url;  
 					}
 					else{
 						let error_string = "Failed to register: ";
